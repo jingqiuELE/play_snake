@@ -2,6 +2,7 @@
 # Use ARROW KEYS to play, SPACE BAR for pausing/resuming and Esc Key for exiting
 
 import curses
+import numpy as np
 from curses import KEY_RIGHT, KEY_LEFT, KEY_UP, KEY_DOWN
 from random import randint
 
@@ -21,17 +22,21 @@ food = [10,20]                                                     # First food 
 
 win.addch(food[0], food[1], '*')                                   # Prints the food
 
-def dump_screen(win, f):
-    height, width = win.getmaxyx()
+m = 5000
+count = 0
+height, width = win.getmaxyx()
+keymap = {KEY_UP: 0, KEY_DOWN: 1, KEY_RIGHT: 2, KEY_LEFT: 3}
+
+x_data = np.zeros(shape=(height, width, m))
+y_data = np.zeros(shape=(4, m))
+
+def collect_data(win, operation, count):
     for i in range(height):
         for j in range(width):
             c = win.inch(i, j)
-            f.write(str(c & curses.A_CHARTEXT))
-            f.write(' ')
-        f.write('\n')
-    f.write('\n')
-
-f = open('./screen_data', 'w')
+            x_data[i][j][count] = c & curses.A_CHARTEXT
+    key_index = keymap[operation]
+    y_data[key_index][count] = operation
 
 while key != 27:                                                   # While Esc key is not pressed
     win.border(0)
@@ -39,10 +44,12 @@ while key != 27:                                                   # While Esc k
     win.addstr(0, 27, ' SNAKE ')                                   # 'SNAKE' strings
     win.timeout(150 - int(len(snake)/5 + len(snake)/10) % 120)          # Increases the speed of Snake as its length increases
 
+    if count >= m:
+        break
+
     prevKey = key                                                  # Previous key pressed
     event = win.getch()
     key = key if event == -1 else event
-
 
     if key == ord(' '):                                            # If SPACE BAR is pressed, wait for another
         key = -1                                                   # one (Pause/Resume)
@@ -54,7 +61,8 @@ while key != 27:                                                   # While Esc k
     if key not in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN, 27]:     # If an invalid key is pressed
         key = prevKey
 
-    dump_screen(win, f)
+    if key != 27:
+        collect_data(win, key, count)
 
     # Calculates the new coordinates of the head of the snake. NOTE: len(snake) increases.
     # This is taken care of later at [1].
@@ -84,8 +92,11 @@ while key != 27:                                                   # While Esc k
         last = snake.pop()                                          # [1] If it does not eat the food, length decreases
         win.addch(last[0], last[1], ' ')
     win.addch(snake[0][0], snake[0][1], '#')
+    count = count + 1
 
-f.close()
-curses.endwin()
 print("\nScore - " + str(score))
 print("http://bitemelater.in\n")
+curses.endwin()
+
+np.save('screen.npy', x_data[:, :, 0:count-1])
+np.save('operation.npy', y_data[:, 0:count-1])
