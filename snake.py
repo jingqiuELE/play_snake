@@ -5,7 +5,6 @@ import curses
 from curses import KEY_RIGHT, KEY_LEFT, KEY_UP, KEY_DOWN
 from random import randint
 
-
 curses.initscr()
 win = curses.newwin(20, 60, 0, 0)
 win.keypad(1)
@@ -21,6 +20,18 @@ snake = [[4,10], [4,9], [4,8]]                                     # Initial sna
 food = [10,20]                                                     # First food co-ordinates
 
 win.addch(food[0], food[1], '*')                                   # Prints the food
+
+def dump_screen(win, f):
+    height, width = win.getmaxyx()
+    for i in range(height):
+        for j in range(width):
+            c = win.inch(i, j)
+            f.write(str(c & curses.A_CHARTEXT))
+            f.write(' ')
+        f.write('\n')
+    f.write('\n')
+
+f = open('./screen_data', 'w')
 
 while key != 27:                                                   # While Esc key is not pressed
     win.border(0)
@@ -42,6 +53,8 @@ while key != 27:                                                   # While Esc k
 
     if key not in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN, 27]:     # If an invalid key is pressed
         key = prevKey
+
+    dump_screen(win, f)
 
     # Calculates the new coordinates of the head of the snake. NOTE: len(snake) increases.
     # This is taken care of later at [1].
@@ -72,6 +85,7 @@ while key != 27:                                                   # While Esc k
         win.addch(last[0], last[1], ' ')
     win.addch(snake[0][0], snake[0][1], '#')
 
+f.close()
 curses.endwin()
 print("\nScore - " + str(score))
 print("http://bitemelater.in\n")
