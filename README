@@ -1,3 +1,5 @@
 Python snake using curses library.
+Modified to collect data to train deep neural network playing the game.
+
 Based on:
 https://gist.github.com/sanchitgangwar/2158089

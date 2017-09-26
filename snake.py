@@ -3,11 +3,16 @@
 
 import curses
 import numpy as np
+import os as os
 from curses import KEY_RIGHT, KEY_LEFT, KEY_UP, KEY_DOWN
 from random import randint
 
 curses.initscr()
-win = curses.newwin(20, 60, 0, 0)
+
+win_height = 20
+win_width = 40
+win = curses.newwin(win_height, win_width, 0, 0)
+
 win.keypad(1)
 curses.noecho()
 curses.curs_set(0)
@@ -24,15 +29,14 @@ win.addch(food[0], food[1], '*')                                   # Prints the 
 
 m = 5000
 count = 0
-height, width = win.getmaxyx()
 keymap = {KEY_UP: 0, KEY_DOWN: 1, KEY_RIGHT: 2, KEY_LEFT: 3}
 
-x_data = np.zeros(shape=(height, width, m))
+x_data = np.zeros(shape=(win_height, win_width, m))
 y_data = np.zeros(shape=(4, m))
 
 def collect_data(win, operation, count):
-    for i in range(height):
-        for j in range(width):
+    for i in range(win_height):
+        for j in range(win_width):
             c = win.inch(i, j)
             x_data[i][j][count] = c & curses.A_CHARTEXT
     key_index = keymap[operation]
@@ -69,10 +73,10 @@ while key != 27:                                                   # While Esc k
     snake.insert(0, [snake[0][0] + (key == KEY_DOWN and 1) + (key == KEY_UP and -1), snake[0][1] + (key == KEY_LEFT and -1) + (key == KEY_RIGHT and 1)])
 
     # If snake crosses the boundaries, make it enter from the other side
-    if snake[0][0] == 0: snake[0][0] = 18
-    if snake[0][1] == 0: snake[0][1] = 58
-    if snake[0][0] == 19: snake[0][0] = 1
-    if snake[0][1] == 59: snake[0][1] = 1
+    if snake[0][0] == 0: snake[0][0] = win_height - 2
+    if snake[0][1] == 0: snake[0][1] = win_width - 2
+    if snake[0][0] == win_height - 1: snake[0][0] = 1
+    if snake[0][1] == win_width - 1: snake[0][1] = 1
 
     # Exit if snake crosses the boundaries (Uncomment to enable)
     #if snake[0][0] == 0 or snake[0][0] == 19 or snake[0][1] == 0 or snake[0][1] == 59: break
@@ -85,7 +89,7 @@ while key != 27:                                                   # While Esc k
         food = []
         score += 1
         while food == []:
-            food = [randint(1, 18), randint(1, 58)]                 # Calculating next food's coordinates
+            food = [randint(1, win_height - 2), randint(1, win_width - 2)]                 # Calculating next food's coordinates
             if food in snake: food = []
         win.addch(food[0], food[1], '*')
     else:
@@ -98,5 +102,7 @@ print("\nScore - " + str(score))
 print("http://bitemelater.in\n")
 curses.endwin()
 
-np.save('screen.npy', x_data[:, :, 0:count-1])
-np.save('operation.npy', y_data[:, 0:count-1])
+os.mkdir("data")
+np.save('./data/screen.npy', x_data[:, :, 0:count-1])
+np.save('./data/operation.npy', y_data[:, 0:count-1])
+
