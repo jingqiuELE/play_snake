@@ -36,16 +36,19 @@ paused = False
 m = 5000
 count = 0
 keymap = {KEY_UP: 0, KEY_DOWN: 1, KEY_RIGHT: 2, KEY_LEFT: 3}
-x_data = np.zeros(shape=(win_height, win_width, m))
-y_data = np.zeros(shape=(4, m))
+x_data = np.zeros(shape=(m, win_height, win_width))
+y_data = np.zeros(shape=(m, 4))
 
 def collect_data(win, operation, count):
+    if count >= m:
+        return
+
     for i in range(win_height):
         for j in range(win_width):
             c = win.inch(i, j)
-            x_data[i][j][count] = c & curses.A_CHARTEXT
+            x_data[count][i][j] = c & curses.A_CHARTEXT
     key_index = keymap[operation]
-    y_data[key_index][count] = operation
+    y_data[count][key_index] = 1
 
 while True:
     win.border(0)
@@ -56,9 +59,6 @@ while True:
     # Increases the speed of Snake as its length increases
     timeout = 150 - (int(len(snake)/5 + len(snake)/10) % 120)
     win.timeout(timeout)
-
-    if count >= m:
-        break
 
     prevKey = key
     event = win.getch()
@@ -84,6 +84,7 @@ while True:
         key = prevKey
     else:
         collect_data(win, key, count)
+        count = count + 1
         if prevKey == key_conflict[key]:
             key = prevKey
 
@@ -128,7 +129,6 @@ while True:
         win.addch(last[0], last[1], ' ')
 
     win.addch(snake[0][0], snake[0][1], '#')
-    count = count + 1
 
 curses.endwin()
 
@@ -137,6 +137,10 @@ print("http://bitemelater.in\n")
 
 if not os.path.exists("data"):
     os.makedirs("data")
-np.save('./data/screen.npy', x_data[:, :, 0:count-1])
-np.save('./data/operation.npy', y_data[:, 0:count-1])
 
+if count >= m:
+    count = m
+
+x_data = np.divide(x_data, 127)
+np.save('./data/screen.npy', x_data[0 : count - 1, :, :])
+np.save('./data/operation.npy', y_data[0 : count - 1, :])
