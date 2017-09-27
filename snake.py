@@ -47,10 +47,12 @@ def collect_data(win, operation, count):
     key_index = keymap[operation]
     y_data[key_index][count] = operation
 
-while True:                                                   # While Esc key is not pressed
+while True:
     win.border(0)
-    win.addstr(0, 2, 'Score : ' + str(score) + ' ')                # Printing 'Score' and
-    win.addstr(0, 27, ' SNAKE ')                                   # 'SNAKE' strings
+    # Printing 'Score' and
+    win.addstr(0, 2, 'Score : ' + str(score) + ' ')
+    # 'SNAKE' strings
+    win.addstr(0, 27, ' SNAKE ')
     # Increases the speed of Snake as its length increases
     timeout = 150 - (int(len(snake)/5 + len(snake)/10) % 120)
     win.timeout(timeout)
@@ -58,7 +60,7 @@ while True:                                                   # While Esc key is
     if count >= m:
         break
 
-    prevKey = key                                                  # Previous key pressed
+    prevKey = key
     event = win.getch()
     if event == -1:
         key = key
@@ -66,17 +68,19 @@ while True:                                                   # While Esc key is
         key = event
         time.sleep(timeout/1000.0)
 
+    # If Esc key is not pressed, stop the game
     if key == KEY_ESC:
         break
 
-    if key == ord(' '):                                            # If SPACE BAR is pressed, wait for another
+    # If Space key is not pressed, pause or resume the game
+    if key == ord(' '):
         paused = not paused
         key = prevKey
 
     if paused:
         continue
 
-    if key not in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN]:     # If an invalid key is pressed
+    if key not in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN]:
         key = prevKey
     else:
         collect_data(win, key, count)
@@ -111,8 +115,7 @@ while True:                                                   # While Esc key is
     # If snake runs over itself
     if snake[0] in snake[1:]: break
 
-
-    if snake[0] == food:                                            # When snake eats the food
+    if snake[0] == food:
         food = []
         score += 1
         while food == []:
@@ -120,8 +123,10 @@ while True:                                                   # While Esc key is
             if food in snake: food = []
         win.addch(food[0], food[1], '*')
     else:
-        last = snake.pop()                                          # [1] If it does not eat the food, length decreases
+        # [1] If it does not eat the food, length decreases
+        last = snake.pop()
         win.addch(last[0], last[1], ' ')
+
     win.addch(snake[0][0], snake[0][1], '#')
     count = count + 1
 
