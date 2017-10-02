@@ -6,7 +6,7 @@ import numpy as np
 n_hidden = 50 # 1st layer number of neurons
 n_classes = 4 # play snake total operations (KEY_UP, KEY_DOWN, KEY_RIGHT, KEY_LEFT)
 learning_rate = 0.001
-training_steps = 10000
+training_steps = 50000
 timesteps = 2
 
 # Import data
@@ -37,6 +37,15 @@ biases = {
     'out': tf.Variable(tf.random_normal([n_classes]))
 }
 
+def prepare_batch(x):
+    features = x.shape[1]
+    x_next = np.delete(x, 0, axis = 0)
+    x_prev = np.delete(x, -1, axis = 0)
+    x_batch = np.concatenate((x_prev, x_next), axis = 1)
+    x_batch = x_batch.reshape(-1, 2, features)
+    return x_batch
+
+
 def RNN(x, weights, biases):
     # Prepare data shape to match `rnn` function requirements
     # Current data input shape: (batch_size, timesteps, n_input)
@@ -58,6 +67,8 @@ def RNN(x, weights, biases):
 logits = RNN(X, weights, biases)
 prediction = tf.nn.softmax(logits)
 
+y_train = np.delete(y_train, -1, axis=0)
+
 loss_op = tf.reduce_mean(
 tf.nn.softmax_cross_entropy_with_logits(labels=y_train, logits=logits))
 optimizer = tf.train.GradientDescentOptimizer(learning_rate)
@@ -71,10 +82,12 @@ tf.global_variables_initializer().run()
 
 # Train
 for epoch in range(training_steps):
-    x_train = x_train.reshape(x_train.shape[0], timesteps, n_input)
-    _, loss = sess.run([train_step, loss_op], feed_dict={X: x_train, Y: y_train})
+    x_batch = prepare_batch(x_train)
+    _, loss = sess.run([train_step, loss_op], feed_dict={X: x_batch, Y: y_train})
     if epoch % 100 == 0:
         print("Epoch:", '%04d' % epoch, "loss={:.9f} ".format(loss))
 
-x_test = x_test.reshape(x_test.shape[0], timesteps, n_input)
-print(sess.run(accuracy, feed_dict={X: x_test, Y: y_test}))
+
+x_test_batch = prepare_batch(x_test)
+y_test = np.delete(y_test, -1, axis=0)
+print(sess.run(accuracy, feed_dict={X: x_test_batch, Y: y_test}))
