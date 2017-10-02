@@ -6,7 +6,7 @@ import numpy as np
 n_hidden = 50 # 1st layer number of neurons
 n_classes = 4 # play snake total operations (KEY_UP, KEY_DOWN, KEY_RIGHT, KEY_LEFT)
 learning_rate = 0.001
-training_steps = 50000
+training_steps = 25000
 timesteps = 2
 
 # Import data
